@@ -1,0 +1,45 @@
+---
+title: "Prediction Assignment"
+author: "Kiattisak Chaisomboon"
+date: "6/24/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+
+```{r cars}
+library(caret)
+library(dplyr)
+
+download.file('https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv', 'pml-training.csv')
+download.file('https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv', 'pml-testing.csv')
+
+pml.training <- read.csv("pml-training.csv", na.strings=c("NA","#DIV/0!", ""))
+pml.testing <- read.csv("pml-testing.csv", na.strings=c("NA","#DIV/0!", ""))
+
+pml.training <- mutate(pml.training, classe=factor(classe))
+
+# Remove column which have NA value more than 50%
+na.portion <- sapply(pml.training, function(x) sum(is.na(x))/nrow(pml.training))
+select.feature <- pml.training[!(na.portion > 0.5)]
+
+# Remove near zero variance
+select.feature <- select.feature[, -nearZeroVar(select.feature)]
+
+# Split the data
+idx.train <- createDataPartition(select.feature$classe, p=0.75, list=FALSE)
+training <- select.feature[idx.train, ]
+testing <- select.feature[-idx.train, ]
+
+# Create 10-fold cross validation
+train.control <- trainControl(method = "cv", number = 10, verboseIter = TRUE)
+
+# Train the data with random forest
+modFit <- train(classe ~ ., data=training, method='rf', prox=TRUE, na.action=na.pass, trControl = train.control)
+```
+
