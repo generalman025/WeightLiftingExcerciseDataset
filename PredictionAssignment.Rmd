@@ -45,24 +45,17 @@ head(pca.feature)
 
 ```{r }
 # Remove non related column
-trainingPCA <- select(trainingPCA, -c('user_name', 'cvtd_timestamp'))
-head(trainingPCA)
-```
-
-
-```{r }
-# Remove near zero variance
-select.feature <- select.feature[, -nearZeroVar(select.feature)]
-dim(select.feature)
+pca.feature <- select(pca.feature, -c('user_name', 'cvtd_timestamp', 'new_window'))
+head(pca.feature)
 ```
 
 
 ```{r }
 # Split the data
 set.seed(33933)
-idx.train <- createDataPartition(select.feature$classe, p=0.75, list=FALSE)
-training <- select.feature[idx.train, ]
-testing <- select.feature[-idx.train, ]
+idx.train <- createDataPartition(pca.feature$classe, p=0.75, list=FALSE)
+training <- pca.feature[idx.train, ]
+testing <- pca.feature[-idx.train, ]
 dim(training)
 dim(testing)
 ```
