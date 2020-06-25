@@ -23,6 +23,7 @@ pml.training <- read.csv("pml-training.csv", na.strings=c("NA","#DIV/0!", ""))
 pml.testing <- read.csv("pml-testing.csv", na.strings=c("NA","#DIV/0!", ""))
 
 pml.training <- mutate(pml.training, classe=factor(classe))
+head(pml.training)
 ```
 
 
@@ -30,20 +31,40 @@ pml.training <- mutate(pml.training, classe=factor(classe))
 # Remove column which have NA value more than 50%
 na.portion <- sapply(pml.training, function(x) sum(is.na(x))/nrow(pml.training))
 select.feature <- pml.training[!(na.portion > 0.5)]
+dim(select.feature)
+```
+
+
+```{r }
+# PCA
+preProc <- preProcess(select.feature,method="pca",thresh=.95)
+pca.feature <- predict(preProc,select.feature)
+head(pca.feature)
+```
+
+
+```{r }
+# Remove non related column
+trainingPCA <- select(trainingPCA, -c('user_name', 'cvtd_timestamp'))
+head(trainingPCA)
 ```
 
 
 ```{r }
 # Remove near zero variance
 select.feature <- select.feature[, -nearZeroVar(select.feature)]
+dim(select.feature)
 ```
 
 
 ```{r }
 # Split the data
+set.seed(33933)
 idx.train <- createDataPartition(select.feature$classe, p=0.75, list=FALSE)
 training <- select.feature[idx.train, ]
 testing <- select.feature[-idx.train, ]
+dim(training)
+dim(testing)
 ```
 
 
@@ -55,6 +76,7 @@ train.control <- trainControl(method = "cv", number = 10, verboseIter = TRUE)
 
 ```{r }
 # Train the data with random forest
+set.seed(33933)
 modFit <- train(classe ~ ., data=training, method='rf', prox=TRUE, na.action=na.pass, trControl = train.control)
 ```
 
