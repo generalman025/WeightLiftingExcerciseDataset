@@ -9,9 +9,9 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## R Markdown
+## Data Preparation
 
-
+Load and clean data
 ```{r }
 library(caret)
 library(dplyr)
@@ -25,31 +25,30 @@ pml.testing <- read.csv("pml-testing.csv", na.strings=c("NA","#DIV/0!", ""))
 pml.training <- mutate(pml.training, classe=factor(classe))
 head(pml.training)
 ```
-
-
+\
+As the data shown, there's a lot of N/A value in some  column. We remove the column which have NA value more than 50%
 ```{r }
-# Remove column which have NA value more than 50%
 na.portion <- sapply(pml.training, function(x) sum(is.na(x))/nrow(pml.training))
 select.feature <- pml.training[!(na.portion > 0.5)]
 dim(select.feature)
 ```
-
-
+\
+There still a lot of column in the dataframe then we use PCA method to reduce the dimension (with 95% threshold)
 ```{r }
 # PCA
 preProc <- preProcess(select.feature,method="pca",thresh=.95)
 pca.feature <- predict(preProc,select.feature)
 head(pca.feature)
 ```
-
-
+\
+Next, we remove non-related column from the dataframe
 ```{r }
 # Remove non related column
 pca.feature <- select(pca.feature, -c('user_name', 'cvtd_timestamp', 'new_window'))
 head(pca.feature)
 ```
-
-
+\
+We split the dataframe into the training set and the other one for the test set.
 ```{r }
 # Split the data
 set.seed(33933)
@@ -61,13 +60,16 @@ dim(testing)
 ```
 
 
+## Implement Random Forest Prediction
+
+Create 10-fold cross validation to control the model
 ```{r }
 # Create 10-fold cross validation
 train.control <- trainControl(method = "cv", number = 10, verboseIter = TRUE)
 ```
-
-
-```{r }
+\
+Create a random forest model prediction
+```{r cache=TRUE}
 # Train the data with random forest
 set.seed(33933)
 modFit <- train(classe ~ ., data=training, method='rf', prox=TRUE, na.action=na.pass, trControl = train.control)
