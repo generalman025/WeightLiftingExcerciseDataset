@@ -41,5 +41,7 @@ train.control <- trainControl(method = "cv", number = 10, verboseIter = TRUE)
 
 # Train the data with random forest
 modFit <- train(classe ~ ., data=training, method='rf', prox=TRUE, na.action=na.pass, trControl = train.control)
+
+# Test
 ```
 
